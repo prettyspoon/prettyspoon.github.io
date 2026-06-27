@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pixelPlayground &mdash; seamless wallpaper design</title>
+<meta name="author" content="Hetvi Pethad">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF1E8;
+    --paper-deep: #F2E6D8;
+    --ink: #2B2620;
+    --ink-dim: #6B5F52;
+    --line: rgba(43, 38, 32, 0.12);
+
+    /* darker terracotta-led family: orange, green, blue, purple */
+    --yellow: #C9762E;
+    --sage: #4D6B3C;
+    --seafoam: #3E6E5E;
+    --sky: #2D5F6B;
+    --lilac: #5B3B66;
+    --blush: #A8475A;
+    --peach: #C4633B;
+
+    --accent: #B5512C;
+    --accent-soft: #E8C4AE;
+
+    --panel: #FFFDF9;
+    --canvas-edge: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+
+  ::selection { background: var(--accent-soft); }
+
+  button { font-family: inherit; }
+
+  /* ============================================================
+     APP SHELL
+     ============================================================ */
+  #app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- TOP BAR ---- */
+  .topbar {
+    height: 64px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--lilac), var(--sky));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .brand-mark svg { width: 16px; height: 16px; }
+
+  .brand-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-name .px { color: var(--accent); }
+
+  .topnav {
+    display: flex;
+    gap: 4px;
+    background: var(--paper-deep);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .topnav button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .topnav button:hover { color: var(--ink); }
+
+  .topnav button.active {
+    background: var(--panel);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(43,38,32,0.1);
+  }
+
+  /* ---- VIEWS ---- */
+  .view {
+    flex: 1;
+    overflow: hidden;
+    display: none;
+  }
+
+  .view.active { display: flex; flex-direction: column; }
+
+  /* ============================================================
+     HOME VIEW
+     ============================================================ */
+  #view-home {
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+  }
+
+  #home-bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .home-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+
+  .home-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  .home-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 72px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 18px;
+  }
+
+  .home-title .px { color: var(--accent); }
+
+  .home-sub {
+    font-size: 17px;
+    color: var(--ink-dim);
+    max-width: 460px;
+    margin: 0 auto 36px;
+    line-height: 1.6;
+  }
+
+  .home-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 20px -8px rgba(43,38,32,0.4);
+  }
+
+  .home-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(43,38,32,0.45); }
+
+  .home-cta svg { width: 16px; height: 16px; }
+
+  /* ============================================================
+     CANVAS VIEW
+     ============================================================ */
+  #view-canvas {
+    background: var(--paper-deep);
+  }
+
+  .canvas-layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 96px 1fr 96px;
+    overflow: hidden;
+  }
+
+  /* ---- TOOL RAILS (shapes left, colors right) ---- */
+  .rail {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 14px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rail.right { border-right: none; border-left: 1px solid var(--line); }
+
+  .rail-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+
+  .swatch-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  .swatch-btn:hover { transform: scale(1.04); }
+  .swatch-btn.active { border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 2px var(--accent-soft); }
+  .swatch-btn canvas { width: 36px; height: 36px; display: block; }
+
+  .color-btn {
+    width: 56px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid var(--line);
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  .color-btn:hover { transform: scale(1.04); }
+  .color-btn.active { border-color: var(--accent); border-width: 2.5px; box-shadow: 0 0 0 2px var(--accent-soft); }
+
+  .rail-divider { width: 60%; height: 1px; background: var(--line); margin: 4px 0; }
+
+  /* ---- STAGE ---- */
+  .stage-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  .stage-frame {
+    position: relative;
+    box-shadow: 0 24px 60px -28px rgba(43,38,32,0.35);
+    border-radius: 4px;
+    background: var(--canvas-edge);
+  }
+
+  #draw-canvas {
+    display: block;
+    cursor: none;
+    border-radius: 4px;
+  }
+
+  .stage-hint {
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    opacity: 0.75;
+  }
+
+  /* ---- LIVE TILE PREVIEW (signature element) ---- */
+  .tile-preview-wrap {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 12px 28px -16px rgba(43,38,32,0.3);
+  }
+
+  .tile-preview-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tile-preview-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  #tile-preview-canvas {
+    width: 140px;
+    height: 140px;
+    border-radius: 7px;
+    display: block;
+  }
+
+  /* ---- BOTTOM ACTION BAR ---- */
+  .action-bar {
+    height: 70px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
+
+  .action-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 11px 20px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+
+  .action-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -8px rgba(43,38,32,0.25); }
+  .action-btn svg { width: 15px; height: 15px; }
+
+  .action-btn.clear,
+  .action-btn.undo,
+  .action-btn.preview,
+  .action-btn.download {
+    color: var(--paper);
+    border-color: transparent;
+  }
+
+  .action-btn.clear { background: var(--blush); }
+  .action-btn.undo { background: var(--sage); }
+  .action-btn.download { background: var(--accent); }
+
+  .size-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    padding: 0 6px;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    margin: 0 6px;
+  }
+
+  .size-control input[type="range"] { width: 110px; accent-color: var(--accent); }
+
+  .action-btn.preview { background: var(--sky); border-color: transparent; }
+
+  .rotation-control {
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+
+  #rotation-display {
+    color: var(--ink);
+    font-weight: 600;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .rotation-hint {
+    opacity: 0.6;
+    font-size: 11px;
+  }
+
+  /* ---- BIG PREVIEW MODAL ---- */
+  .preview-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(43, 38, 32, 0.45);
+    backdrop-filter: blur(3px);
+  }
+
+  .preview-modal.open { display: flex; }
+
+  .preview-modal-inner {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.45);
+    max-width: min(86vw, 760px);
+  }
+
+  .preview-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .preview-modal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+  }
+
+  .preview-modal-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .preview-modal-close:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .preview-modal-close svg { width: 14px; height: 14px; }
+
+  #big-preview-canvas {
+    width: min(80vw, 720px);
+    height: min(80vw, 720px);
+    border-radius: 8px;
+    display: block;
+  }
+
+  @media (max-width: 760px) {
+    .rotation-control { display: none; } /* arrow-key rotation is a desktop interaction */
+  }
+
+  @media (max-width: 760px) {
+    .canvas-layout { grid-template-columns: 72px 1fr 72px; }
+    .swatch-btn { width: 44px; height: 44px; }
+    .swatch-btn canvas { width: 28px; height: 28px; }
+    .color-btn { width: 44px; height: 26px; }
+    .stage-area { padding: 12px; }
+    .tile-preview-wrap { top: 10px; right: 10px; padding: 7px; }
+    #tile-preview-canvas { width: 84px; height: 84px; }
+    .action-bar { flex-wrap: wrap; height: auto; padding: 10px; gap: 8px; }
+    .size-control { border: none; margin: 0; padding: 0; order: 10; width: 100%; justify-content: center; }
+    .topbar { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; row-gap: 8px; }
+    .topnav { order: 10; width: 100%; justify-content: center; flex-wrap: wrap; }
+    .topnav button { font-size: 11px; padding: 6px 10px; }
+    .topbar > div:last-child { display: none; }
+  }
+
+  /* ============================================================
+     CONTENT VIEWS (how-to, inspiration, about)
+     ============================================================ */
+  .content-view {
+    overflow-y: auto;
+    background: var(--paper);
+  }
+
+  .content-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  .content-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 14px;
+  }
+
+  .content-wrap h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 38px;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+  }
+
+  .content-wrap h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 19px;
+    margin: 28px 0 12px;
+  }
+
+  .content-wrap p {
+    font-size: 15.5px;
+    line-height: 1.75;
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+  }
+
+  .content-wrap strong { color: var(--ink); font-weight: 600; }
+  .content-wrap a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 24px 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step p { margin-bottom: 0; }
+
+  .button-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 24px 0;
+  }
+
+  .button-legend-item {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .button-legend-item .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 6px;
+    color: var(--paper);
+  }
+
+  .tag.clear { background: var(--blush); }
+  .tag.undo { background: var(--sage); }
+  .tag.preview { background: var(--sky); }
+  .tag.download { background: var(--lilac); }
+
+  .button-legend-item p { font-size: 13.5px; margin-bottom: 0; }
+
+  .insp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .insp-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .insp-card-shape {
+    width: 100%;
+    height: 90px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .insp-card h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14.5px;
+    margin-bottom: 4px;
+  }
+
+  .insp-card p { font-size: 12.5px; margin-bottom: 0; }
+
+  .signoff {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink-dim);
+    margin-top: 36px;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="#6B4FA0"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="#6B4FA0" opacity="0.55"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="#6B4FA0" opacity="0.55"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="#6B4FA0"/></svg>
+      </div>
+      <div class="brand-name">pixel<span class="px">Playground</span></div>
+    </div>
+    <div class="topnav">
+      <button data-view="home" class="active">home</button>
+      <button data-view="canvas">canvas</button>
+      <button data-view="howto">how to use</button>
+      <button data-view="inspiration">inspiration</button>
+      <button data-view="about">about</button>
+    </div>
+    <a href="index.html" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink-dim);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;">&larr; portfolio</a>
+  </div>
+
+  <section id="view-home" class="view active">
+    <canvas id="home-bg-canvas"></canvas>
+    <div class="home-content">
+      <div class="home-eyebrow">seamless wallpaper design, in your browser</div>
+      <h1 class="home-title">pixel<span class="px">Playground</span></h1>
+      <p class="home-sub">Pick a shape, pick a color, drop it on the canvas &mdash; and watch it tile seamlessly in real time. No design experience required.</p>
+      <button class="home-cta" data-goto="canvas">
+        start designing
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section id="view-canvas" class="view">
+    <div class="canvas-layout">
+      <div class="rail" id="shape-rail">
+        <div class="rail-label">shapes</div>
+        <!-- shape swatches injected by JS -->
+      </div>
+
+      <div class="stage-area">
+        <div class="tile-preview-wrap">
+          <div class="tile-preview-label"><span class="tile-preview-dot"></span>live tile preview</div>
+          <canvas id="tile-preview-canvas" width="280" height="280"></canvas>
+        </div>
+        <div class="stage-frame">
+          <canvas id="draw-canvas"></canvas>
+          <div class="stage-hint">click to place &middot; scroll or &uarr;&darr; to resize</div>
+        </div>
+      </div>
+
+      <div class="rail right" id="color-rail">
+        <div class="rail-label">colors</div>
+        <!-- color swatches injected by JS -->
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="action-btn clear" id="btn-clear">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M4 4l.7 9.3a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        clear
+      </button>
+      <button class="action-btn undo" id="btn-undo">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M4 4v4h4M4 8a5 5 0 119.5 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        undo
+      </button>
+      <button class="action-btn preview" id="btn-preview">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/></svg>
+        preview
+      </button>
+      <div class="size-control">
+        <span>size</span>
+        <input type="range" id="size-slider" min="20" max="160" value="60" step="2">
+        <span id="size-display">60px</span>
+      </div>
+      <div class="size-control rotation-control">
+        <span>rotation</span>
+        <span id="rotation-display">0&deg;</span>
+        <span class="rotation-hint">&larr; &rarr;</span>
+      </div>
+      <button class="action-btn download" id="btn-download">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        download tile
+      </button>
+    </div>
+  </section>
+
+  <div class="preview-modal" id="preview-modal">
+    <div class="preview-modal-inner">
+      <div class="preview-modal-header">
+        <span class="preview-modal-title">tile preview</span>
+        <button class="preview-modal-close" id="preview-modal-close" aria-label="Close preview">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <canvas id="big-preview-canvas" width="900" height="900"></canvas>
+    </div>
+  </div>
+
+  <section id="view-howto" class="view content-view">
+    <div class="content-wrap">
+      <div class="content-eyebrow">getting started</div>
+      <h1>how to use</h1>
+
+      <p>The canvas is your creative space. The left rail holds every shape; the right rail holds every color. Pick one of each, then click anywhere on the white square to place it. Watch the <strong>live tile preview</strong> in the corner &mdash; it shows your pattern already repeating, updating as you draw.</p>
+
+      <h3>the basics</h3>
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">1</div>
+          <p>Pick a shape from the left rail and a color from the right rail.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <p>Move your mouse over the canvas to preview where it'll land &mdash; notice it wraps around the edges, so you can see exactly how it'll tile.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <p>Click to place it. Use the size slider (or your keyboard's up/down arrows) to resize before placing, and the left/right arrow keys to rotate it 15&deg; at a time.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <p>The filled-square icon near the top of the shape rail is the background fill tool &mdash; pick a color and click anywhere on the canvas to set the whole tile's background. This never affects shapes already placed.</p>
+        </div>
+      </div>
+
+      <h3>the buttons</h3>
+      <div class="button-legend">
+        <div class="button-legend-item"><span class="tag clear">clear</span><p>Wipes the canvas back to blank. There's no undo for this one &mdash; use it deliberately.</p></div>
+        <div class="button-legend-item"><span class="tag undo">undo</span><p>Removes the last shape you placed. Works as many times as you need.</p></div>
+        <div class="button-legend-item"><span class="tag preview">preview</span><p>Opens a much larger version of the live tile preview, for a real look at the repeating pattern.</p></div>
+        <div class="button-legend-item"><span class="tag download">download</span><p>Saves your seamless tile as a PNG, ready to use as an actual wallpaper or pattern fill.</p></div>
+      </div>
+
+      <p>Confused about why any of this matters? Head to <a href="#" data-goto="inspiration">inspiration</a> to see what a seamless tile actually means.</p>
+    </div>
+  </section>
+
+  <section id="view-inspiration" class="view content-view">
+    <div class="content-wrap">
+      <div class="content-eyebrow">why seamless tiling</div>
+      <h1>inspiration</h1>
+      <p>A seamless tile is a small square that repeats infinitely in every direction with no visible seam &mdash; the pattern at the right edge continues perfectly into the left edge of the next copy, and the same for top and bottom. It's the same trick behind wallpaper, fabric prints, and most background textures you've ever seen on a website.</p>
+      <p>pixelPlayground handles the wraparound math for you: place a shape near any edge, and it automatically mirrors a copy across to the opposite edge in the live preview, so you always know exactly what the repeating pattern will look like before you commit.</p>
+
+      <h3>a few directions to try</h3>
+      <div class="insp-grid">
+        <div class="insp-card">
+          <div class="insp-card-shape" style="background: repeating-linear-gradient(45deg, var(--sky) 0 10px, transparent 10px 20px); background-color: var(--paper-deep);"></div>
+          <h4>diagonal rhythm</h4>
+          <p>Repeat one shape at a steady diagonal offset for a woven, textile feel.</p>
+        </div>
+        <div class="insp-card">
+          <div class="insp-card-shape" style="background: radial-gradient(circle at 30% 30%, var(--blush), transparent 60%), radial-gradient(circle at 70% 70%, var(--lilac), transparent 60%); background-color: var(--paper-deep);"></div>
+          <h4>two-tone scatter</h4>
+          <p>Two colors, one shape, placed loosely &mdash; reads as organic rather than gridded.</p>
+        </div>
+        <div class="insp-card">
+          <div class="insp-card-shape" style="background-image: linear-gradient(var(--paper-deep) 1px, transparent 1px), linear-gradient(90deg, var(--paper-deep) 1px, transparent 1px); background-size: 20px 20px; background-color: var(--seafoam);"></div>
+          <h4>grid foundation</h4>
+          <p>Start with the checkered or circle-grid pattern as scaffolding, then layer detail shapes on top.</p>
+        </div>
+        <div class="insp-card">
+          <div class="insp-card-shape" style="background: var(--peach); background-image: repeating-radial-gradient(circle at center, var(--yellow) 0, var(--yellow) 4px, transparent 4px, transparent 16px);"></div>
+          <h4>single hero motif</h4>
+          <p>One distinctive shape (the flower or trippy-effect pattern), repeated alone, often reads as more intentional than five shapes combined.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-about" class="view content-view">
+    <div class="content-wrap">
+      <div class="content-eyebrow">the story</div>
+      <h1>about</h1>
+      <h3>Pixel Playground: your digital canvas for effortless wallpaper design</h3>
+      <p>Have you ever dreamt of creating stunning, seamless wallpaper designs, but found yourself bogged down by the tedious process &mdash; struggling with the complexity of traditional design tools, or spending hours painstakingly aligning patterns by hand? I understand that frustration firsthand, which is exactly why I built Pixel Playground.</p>
+      <p>It's more than another design tool &mdash; it's a creative playground and a gateway to seamless design, without needing rulers, erasers, or hours of pixel-tweaking. Whether you're a seasoned designer streamlining your workflow or a complete beginner exploring digital art for the first time, Pixel Playground is built to welcome you in.</p>
+      <p>Dive into the colors, patterns, and possibilities. Whether you're crafting intricate motifs, experimenting with bold combinations, or just having fun &mdash; there's something here for you.</p>
+      <p class="signoff">Hetvi Pethad &lt;3</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function() {
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+  const views = document.querySelectorAll('.view');
+  const navButtons = document.querySelectorAll('.topnav button');
+
+  function goToView(name) {
+    views.forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+    navButtons.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    if (name === 'canvas') requestAnimationFrame(sizeDrawCanvas);
+  }
+
+  navButtons.forEach(btn => btn.addEventListener('click', () => goToView(btn.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', (e) => { e.preventDefault(); goToView(el.dataset.goto); });
+  });
+
+  // ============================================================
+  // PALETTE (the original tool's own pastel family, kept exactly)
+  // ============================================================
+  const PALETTE = [
+    '#FFFFFF', '#D88259', '#7A9A5E', '#5C9C8C', '#4A87A0', '#7A5685', '#C16B7C', '#C4633B',
+    '#000000', '#B5512C', '#4D6B3C', '#2D5F6B', '#33506E', '#5B3B66', '#8C2F3F', '#8C4A1E'
+  ];
+
+  // ============================================================
+  // PATTERN RENDERERS
+  // Each draws into a square region [0,size]x[0,size] of a canvas
+  // context, in the given color. Vector-drawn so they stay crisp
+  // at any size and recolor perfectly (no image tinting needed).
+  // ============================================================
+  const PATTERN_NAMES = [
+    'straight line', 'background fill', 'triangle', 'hexagon',
+    'concentric circles', 'swiggle', 'rays', 'checkered',
+    'dotted line', 'square', 'circle', 'flower',
+    'dotted circle', 'waves', 'circle grid', 'trippy effect'
+  ];
+
+  const PATTERNS = [
+    // 0 straight line
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s * 0.06); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(s/2, s*0.08); ctx.lineTo(s/2, s*0.92); ctx.stroke();
+    },
+    // 1 background fill (paint bucket look)
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      roundRectPath(ctx, s*0.1, s*0.1, s*0.8, s*0.8, s*0.18);
+      ctx.fill();
+    },
+    // 2 triangle
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.06); ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(s/2, s*0.12); ctx.lineTo(s*0.88, s*0.85); ctx.lineTo(s*0.12, s*0.85); ctx.closePath();
+      ctx.stroke();
+    },
+    // 3 hexagon
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.06); ctx.lineJoin = 'round';
+      drawPolygon(ctx, s/2, s/2, s*0.42, 6, -Math.PI/2);
+      ctx.stroke();
+    },
+    // 4 concentric circles
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.05);
+      [0.42, 0.27, 0.13].forEach(r => { ctx.beginPath(); ctx.arc(s/2, s/2, s*r, 0, Math.PI*2); ctx.stroke(); });
+    },
+    // 5 swiggle
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.07); ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(s*0.1, s*0.5);
+      for (let i = 0; i <= 20; i++) {
+        const t = i / 20;
+        ctx.lineTo(s*0.1 + t*s*0.8, s*0.5 + Math.sin(t*Math.PI*2.2)*s*0.22);
+      }
+      ctx.stroke();
+    },
+    // 6 rays
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.045); ctx.lineCap = 'round';
+      const n = 8;
+      for (let i = 0; i < n; i++) {
+        const a = (i/n) * Math.PI*2;
+        ctx.beginPath();
+        ctx.moveTo(s/2 + Math.cos(a)*s*0.12, s/2 + Math.sin(a)*s*0.12);
+        ctx.lineTo(s/2 + Math.cos(a)*s*0.44, s/2 + Math.sin(a)*s*0.44);
+        ctx.stroke();
+      }
+    },
+    // 7 checkered
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      const q = s*0.4;
+      ctx.fillRect(s*0.08, s*0.08, q, q);
+      ctx.fillRect(s*0.52, s*0.52, q, q);
+    },
+    // 8 dotted line
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      const n = 5;
+      for (let i = 0; i < n; i++) {
+        const y = s*0.12 + (i/(n-1)) * s*0.76;
+        ctx.beginPath(); ctx.arc(s/2, y, s*0.06, 0, Math.PI*2); ctx.fill();
+      }
+    },
+    // 9 square
+    (ctx, s, c) => { ctx.fillStyle = c; ctx.fillRect(s*0.16, s*0.16, s*0.68, s*0.68); },
+    // 10 circle
+    (ctx, s, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(s/2, s/2, s*0.38, 0, Math.PI*2); ctx.fill(); },
+    // 11 flower
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      const n = 6, r = s*0.2;
+      for (let i = 0; i < n; i++) {
+        const a = (i/n) * Math.PI*2;
+        ctx.beginPath();
+        ctx.arc(s/2 + Math.cos(a)*r, s/2 + Math.sin(a)*r, s*0.16, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(s/2, s/2, s*0.13, 0, Math.PI*2); ctx.fill();
+    },
+    // 12 dotted circle
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      const n = 14, r = s*0.36;
+      for (let i = 0; i < n; i++) {
+        const a = (i/n) * Math.PI*2;
+        ctx.beginPath(); ctx.arc(s/2 + Math.cos(a)*r, s/2 + Math.sin(a)*r, s*0.045, 0, Math.PI*2); ctx.fill();
+      }
+    },
+    // 13 waves
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.05); ctx.lineCap = 'round';
+      [0.35, 0.65].forEach(yBase => {
+        ctx.beginPath();
+        for (let i = 0; i <= 16; i++) {
+          const t = i/16;
+          const x = s*0.06 + t*s*0.88;
+          const y = s*yBase + Math.sin(t*Math.PI*3)*s*0.08;
+          if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      });
+    },
+    // 14 circle grid
+    (ctx, s, c) => {
+      ctx.fillStyle = c;
+      [[0.3,0.3],[0.7,0.3],[0.3,0.7],[0.7,0.7]].forEach(([fx,fy]) => {
+        ctx.beginPath(); ctx.arc(s*fx, s*fy, s*0.14, 0, Math.PI*2); ctx.fill();
+      });
+    },
+    // 15 trippy effect
+    (ctx, s, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, s*0.045);
+      for (let i = 0; i < 5; i++) {
+        const r = s*0.42 * (1 - i/5.5);
+        const rot = i * 0.35;
+        ctx.save();
+        ctx.translate(s/2, s/2); ctx.rotate(rot);
+        ctx.strokeRect(-r, -r, r*2, r*2);
+        ctx.restore();
+      }
+    },
+  ];
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function drawPolygon(ctx, cx, cy, r, sides, rotation) {
+    ctx.beginPath();
+    for (let i = 0; i <= sides; i++) {
+      const a = rotation + (i/sides)*Math.PI*2;
+      const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+      if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+  }
+
+  function renderPattern(ctx, patternIdx, x, y, size, color, rotationDeg) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (rotationDeg) {
+      ctx.translate(size/2, size/2);
+      ctx.rotate(rotationDeg * Math.PI / 180);
+      ctx.translate(-size/2, -size/2);
+    }
+    PATTERNS[patternIdx](ctx, size, color);
+    ctx.restore();
+  }
+
+  // ============================================================
+  // CANVAS STATE
+  // ============================================================
+  let currentShape = 1;       // index into PATTERNS, default = background fill
+  let currentColorIdx = 8;    // default black, matching the original
+  let currentSize = 60;
+  let currentRotation = 0; // degrees, adjusted in 15-degree steps via left/right arrow keys
+
+  let bgColorIdx = 0;         // tile background color index
+  let placedShapes = [];      // {shape, x, y, size, colorIdx} -- x,y are top-left, relative to tile origin
+
+  const TILE_SIZE = 480; // logical drawing-tile size in CSS px (square)
+
+  const drawCanvas = document.getElementById('draw-canvas');
+  const drawCtx = drawCanvas.getContext('2d');
+  const tilePreviewCanvas = document.getElementById('tile-preview-canvas');
+  const tileCtx = tilePreviewCanvas.getContext('2d');
+
+  let mouseX = -9999, mouseY = -9999;
+  let mouseOverCanvas = false;
+
+  let displayScale = 1; // ratio of on-screen CSS size to logical TILE_SIZE
+
+  function sizeDrawCanvas() {
+    const stageArea = document.querySelector('.stage-area');
+    const available = Math.min(
+      stageArea.clientWidth - 48,
+      stageArea.clientHeight - 70
+    );
+    const displaySize = Math.max(180, Math.min(TILE_SIZE, available));
+    displayScale = displaySize / TILE_SIZE;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    drawCanvas.style.width = displaySize + 'px';
+    drawCanvas.style.height = displaySize + 'px';
+    drawCanvas.width = TILE_SIZE * dpr;
+    drawCanvas.height = TILE_SIZE * dpr;
+    drawCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    renderAll();
+  }
+
+  window.addEventListener('resize', sizeDrawCanvas);
+
+  // ---- wraparound helper (generalized, see reasoning) ----
+  function wrappedPositions(x, y, s, T) {
+    const positions = [[x, y]];
+    const overLeft = x < 0, overRight = x + s > T, overTop = y < 0, overBottom = y + s > T;
+    if (overLeft) positions.push([x + T, y]);
+    if (overRight) positions.push([x - T, y]);
+    if (overTop) positions.push([x, y + T]);
+    if (overBottom) positions.push([x, y - T]);
+    if (overLeft && overTop) positions.push([x + T, y + T]);
+    if (overLeft && overBottom) positions.push([x + T, y - T]);
+    if (overRight && overTop) positions.push([x - T, y + T]);
+    if (overRight && overBottom) positions.push([x - T, y - T]);
+    return positions;
+  }
+
+  function drawTileContent(ctx, T) {
+    // background
+    ctx.fillStyle = PALETTE[bgColorIdx];
+    ctx.fillRect(0, 0, T, T);
+    // placed shapes, each with wraparound copies
+    for (const item of placedShapes) {
+      const color = PALETTE[item.colorIdx];
+      for (const [px, py] of wrappedPositions(item.x, item.y, item.size, T)) {
+        renderPattern(ctx, item.shape, px, py, item.size, color, item.rotation || 0);
+      }
+    }
+  }
+
+  function renderAll() {
+    // main draw canvas
+    drawCtx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
+    drawTileContent(drawCtx, TILE_SIZE);
+
+    // hover preview (ghost shape under cursor, with its own wraparound)
+    if (mouseOverCanvas && currentShape !== 1) {
+      const hx = mouseX - currentSize/2, hy = mouseY - currentSize/2;
+      drawCtx.globalAlpha = 0.55;
+      for (const [px, py] of wrappedPositions(hx, hy, currentSize, TILE_SIZE)) {
+        renderPattern(drawCtx, currentShape, px, py, currentSize, PALETTE[currentColorIdx], currentRotation);
+      }
+      drawCtx.globalAlpha = 1;
+    }
+
+    renderTilePreview();
+  }
+
+  // ---- live 3x3 seamless tile preview ----
+  function renderTilePreview() {
+    const W = tilePreviewCanvas.width, H = tilePreviewCanvas.height;
+    tileCtx.clearRect(0, 0, W, H);
+    const cell = W / 3;
+    // render the tile once into an offscreen canvas at cell resolution, then stamp 3x3
+    const off = document.createElement('canvas');
+    off.width = cell; off.height = cell;
+    const offCtx = off.getContext('2d');
+    offCtx.save();
+    offCtx.scale(cell / TILE_SIZE, cell / TILE_SIZE);
+    drawTileContent(offCtx, TILE_SIZE);
+    offCtx.restore();
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        tileCtx.drawImage(off, i*cell, j*cell, cell, cell);
+      }
+    }
+  }
+
+  // ============================================================
+  // INTERACTION
+  // ============================================================
+  drawCanvas.addEventListener('mousemove', (e) => {
+    const rect = drawCanvas.getBoundingClientRect();
+    mouseX = (e.clientX - rect.left) / displayScale;
+    mouseY = (e.clientY - rect.top) / displayScale;
+    mouseOverCanvas = true;
+    renderAll();
+  });
+
+  drawCanvas.addEventListener('mouseleave', () => {
+    mouseOverCanvas = false;
+    renderAll();
+  });
+
+  drawCanvas.addEventListener('click', () => {
+    if (!mouseOverCanvas) return;
+    if (currentShape === 1) {
+      // background fill tool
+      bgColorIdx = currentColorIdx;
+    } else {
+      placedShapes.push({
+        shape: currentShape,
+        x: mouseX - currentSize/2,
+        y: mouseY - currentSize/2,
+        size: currentSize,
+        colorIdx: currentColorIdx,
+        rotation: currentRotation
+      });
+    }
+    renderAll();
+  });
+
+  drawCanvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    currentSize = Math.min(160, Math.max(20, currentSize - Math.sign(e.deltaY)*4));
+    sizeSlider.value = currentSize;
+    sizeDisplay.textContent = currentSize + 'px';
+    renderAll();
+  }, { passive: false });
+
+  window.addEventListener('keydown', (e) => {
+    if (!document.getElementById('view-canvas').classList.contains('active')) return;
+    const isArrow = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key);
+    if (!isArrow) return;
+    e.preventDefault(); // arrow keys control the tool here, not page scroll
+
+    if (e.key === 'ArrowUp') {
+      currentSize = Math.min(160, currentSize + 10);
+      sizeSlider.value = currentSize;
+      sizeDisplay.textContent = currentSize + 'px';
+    }
+    if (e.key === 'ArrowDown') {
+      currentSize = Math.max(20, currentSize - 10);
+      sizeSlider.value = currentSize;
+      sizeDisplay.textContent = currentSize + 'px';
+    }
+    if (e.key === 'ArrowRight') {
+      currentRotation = (currentRotation + 15) % 360;
+      rotationDisplay.textContent = currentRotation + '\u00b0';
+    }
+    if (e.key === 'ArrowLeft') {
+      currentRotation = (currentRotation - 15 + 360) % 360;
+      rotationDisplay.textContent = currentRotation + '\u00b0';
+    }
+    renderAll();
+  });
+
+  // ============================================================
+  // RAILS: build shape + color swatch buttons
+  // ============================================================
+  const shapeRail = document.getElementById('shape-rail');
+  const colorRail = document.getElementById('color-rail');
+
+  PATTERN_NAMES.forEach((name, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'swatch-btn' + (idx === currentShape ? ' active' : '');
+    btn.title = name;
+    btn.dataset.shapeIdx = idx;
+    const c = document.createElement('canvas');
+    c.width = 72; c.height = 72;
+    const cctx = c.getContext('2d');
+    cctx.scale(72/100, 72/100);
+    renderPattern(cctx, idx, 8, 8, 84, '#2B2620');
+    btn.appendChild(c);
+    btn.addEventListener('click', () => {
+      currentShape = idx;
+      document.querySelectorAll('.swatch-btn').forEach(b => b.classList.toggle('active', b === btn));
+    });
+    shapeRail.appendChild(btn);
+  });
+
+  PALETTE.forEach((hex, idx) => {
+    if (idx === 7) { // visual divider between light/dark halves, matching original's two columns
+      const div = document.createElement('div');
+      div.className = 'rail-divider';
+      colorRail.appendChild(div);
+    }
+    const btn = document.createElement('button');
+    btn.className = 'color-btn' + (idx === currentColorIdx ? ' active' : '');
+    btn.style.background = hex;
+    btn.title = hex;
+    btn.addEventListener('click', () => {
+      currentColorIdx = idx;
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.toggle('active', b === btn));
+    });
+    colorRail.appendChild(btn);
+  });
+
+  // ============================================================
+  // ACTION BAR
+  // ============================================================
+  const sizeSlider = document.getElementById('size-slider');
+  const sizeDisplay = document.getElementById('size-display');
+  const rotationDisplay = document.getElementById('rotation-display');
+  const previewModal = document.getElementById('preview-modal');
+  const bigPreviewCanvas = document.getElementById('big-preview-canvas');
+  const bigPreviewCtx = bigPreviewCanvas.getContext('2d');
+
+  sizeSlider.addEventListener('input', () => {
+    currentSize = parseInt(sizeSlider.value, 10);
+    sizeDisplay.textContent = currentSize + 'px';
+    renderAll();
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    placedShapes = [];
+    bgColorIdx = 0;
+    renderAll();
+  });
+
+  document.getElementById('btn-undo').addEventListener('click', () => {
+    placedShapes.pop();
+    renderAll();
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const off = document.createElement('canvas');
+    off.width = 1024; off.height = 1024;
+    const offCtx = off.getContext('2d');
+    offCtx.save();
+    offCtx.scale(1024/TILE_SIZE, 1024/TILE_SIZE);
+    drawTileContent(offCtx, TILE_SIZE);
+    offCtx.restore();
+    off.toBlob((blob) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pixelplayground-tile.png';
+      a.click();
+    });
+  });
+
+  // ---- big preview modal: same 3x3 seamless-stamp technique as the live preview ----
+  function renderBigPreview() {
+    const W = bigPreviewCanvas.width, H = bigPreviewCanvas.height;
+    bigPreviewCtx.clearRect(0, 0, W, H);
+    const cell = W / 3;
+    const off = document.createElement('canvas');
+    off.width = cell; off.height = cell;
+    const offCtx = off.getContext('2d');
+    offCtx.save();
+    offCtx.scale(cell / TILE_SIZE, cell / TILE_SIZE);
+    drawTileContent(offCtx, TILE_SIZE);
+    offCtx.restore();
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        bigPreviewCtx.drawImage(off, i*cell, j*cell, cell, cell);
+      }
+    }
+  }
+
+  function openPreviewModal() {
+    renderBigPreview();
+    previewModal.classList.add('open');
+  }
+
+  function closePreviewModal() {
+    previewModal.classList.remove('open');
+  }
+
+  document.getElementById('btn-preview').addEventListener('click', openPreviewModal);
+  document.getElementById('preview-modal-close').addEventListener('click', closePreviewModal);
+  previewModal.addEventListener('click', (e) => { if (e.target === previewModal) closePreviewModal(); });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && previewModal.classList.contains('open')) closePreviewModal();
+  });
+
+  // ============================================================
+  // HOME AMBIENT BACKGROUND (lightweight, no p5 dependency)
+  // ============================================================
+  const homeCanvas = document.getElementById('home-bg-canvas');
+  const homeCtx = homeCanvas.getContext('2d');
+  const ambientColors = ['#C9762E','#4D6B3C','#3E6E5E','#2D5F6B','#5B3B66','#A8475A','#C4633B'];
+  let ambientShapes = [];
+
+  function sizeHomeCanvas() {
+    homeCanvas.width = window.innerWidth;
+    homeCanvas.height = window.innerHeight - 64;
+    seedAmbient();
+  }
+
+  function seedAmbient() {
+    ambientShapes = [];
+    const cols = Math.ceil(homeCanvas.width / 150) + 1;
+    const rows = Math.ceil(homeCanvas.height / 150) + 1;
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        ambientShapes.push({
+          x: i * 150 + 50, y: j * 150 + 50,
+          shape: [2,3,4,6,9,10,14][Math.floor(Math.random()*7)],
+          color: ambientColors[Math.floor(Math.random()*ambientColors.length)],
+          size: 38,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+  }
+
+  window.addEventListener('resize', sizeHomeCanvas);
+  sizeHomeCanvas();
+
+  let ambientT = 0;
+  function animateAmbient() {
+    ambientT += 0.006;
+    homeCtx.clearRect(0, 0, homeCanvas.width, homeCanvas.height);
+    homeCtx.globalAlpha = 0.22;
+    for (const sh of ambientShapes) {
+      const wobble = Math.sin(ambientT + sh.phase) * 6;
+      renderPattern(homeCtx, sh.shape, sh.x + wobble, sh.y, sh.size, sh.color);
+    }
+    homeCtx.globalAlpha = 1;
+    requestAnimationFrame(animateAmbient);
+  }
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    animateAmbient();
+  } else {
+    seedAmbient();
+    homeCtx.globalAlpha = 0.22;
+    for (const sh of ambientShapes) renderPattern(homeCtx, sh.shape, sh.x, sh.y, sh.size, sh.color);
+    homeCtx.globalAlpha = 1;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  sizeDrawCanvas();
+})();
+</script>
+
+</body>
+</html>

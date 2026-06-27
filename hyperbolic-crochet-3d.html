@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crochet surfaces in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,500&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F7F1E8;
+    --paper-line: #E6DCC9;
+    --ink: #2A2520;
+    --ink-dim: #6B6155;
+    --rust: #334455;
+    --rust-soft: #5A7088;
+    --indigo: #8C6F8A;
+    --indigo-soft: #A893A6;
+    --panel: #FFFDF8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 56px 24px 60px;
+  }
+
+  header { text-align: center; max-width: 580px; margin-bottom: 6px; }
+
+  .back-link {
+    position: fixed;
+    top: 20px;
+    left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    text-decoration: none;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
+
+  .back-link:hover { color: var(--rust); }
+
+  @media (max-width: 760px) {
+    .back-link { position: static; display: inline-flex; margin-bottom: 16px; }
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    color: var(--rust);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  h1 em { font-style: italic; color: var(--rust); font-weight: 500; }
+
+  header p { font-size: 15px; color: var(--ink-dim); line-height: 1.6; }
+
+  /* ---- LAYOUT ---- */
+  .layout {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: 200px 560px 220px;
+    gap: 28px;
+    align-items: start;
+    width: 100%;
+    max-width: 1020px;
+  }
+
+  /* ---- LEFT: shape + start controls ---- */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    padding: 18px 18px 20px;
+  }
+
+  .panel-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+  }
+
+  .shape-options { display: flex; flex-direction: column; gap: 8px; }
+
+  .shape-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--paper-line);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+  }
+
+  .shape-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .shape-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+  .shape-btn.active {
+    border-color: var(--rust);
+    background: rgba(51, 68, 85, 0.08);
+    color: var(--ink);
+  }
+
+  .n-readout {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .n-value {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .n-sub {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--rust);
+    margin-top: 2px;
+  }
+
+  /* ---- CENTER: 3D stage ---- */
+  .stage-box {
+    background: var(--panel);
+    border: 1px solid var(--paper-line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 18px 44px -24px rgba(42,37,32,0.2);
+  }
+
+  .stage-canvas-wrap {
+    width: 100%;
+    height: 460px;
+    position: relative;
+  }
+
+  #stage-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+  #stage-canvas:active { cursor: grabbing; }
+
+  .stage-hint {
+    position: absolute;
+    bottom: 10px;
+    left: 14px;
+    font-family: 'Caveat', cursive;
+    font-size: 15px;
+    color: var(--ink-dim);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .slider-bar {
+    border-top: 1px solid var(--paper-line);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .slider-bar .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    min-width: 86px;
+  }
+
+  input[type="range"] { flex: 1; accent-color: var(--rust); }
+
+  .slider-bar .n-current {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    min-width: 28px;
+    text-align: center;
+    color: var(--rust);
+  }
+
+  .toggle-bar { padding-top: 0; }
+
+  .toggle-control {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle-control input[type="checkbox"] {
+    position: absolute;
+    top: 0; left: 0;
+    opacity: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .toggle-box {
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1.4px solid var(--ink-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    flex: 0 0 18px;
+    pointer-events: none;
+  }
+
+  .toggle-check {
+    display: flex;
+    width: 10px;
+    height: 8px;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.12s, transform 0.12s;
+  }
+
+  .toggle-check svg { width: 10px; height: 8px; display: block; }
+
+  .toggle-control input:checked ~ .toggle-box {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+
+  .toggle-control input:checked ~ .toggle-box .toggle-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .toggle-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    pointer-events: none;
+  }
+
+  /* ---- RIGHT: curvature math readout ---- */
+  .readout-card { margin-bottom: 14px; }
+  .readout-card:last-child { margin-bottom: 0; }
+
+  .readout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+
+  .readout-value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .readout-value.small { font-size: 16px; }
+
+  .surface-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-top: 4px;
+  }
+
+  .surface-tag.hyperbolic { background: rgba(51,68,85,0.12); color: var(--rust); }
+  .surface-tag.flat { background: rgba(107,97,85,0.1); color: var(--ink-dim); }
+  .surface-tag.spherical { background: rgba(140,111,138,0.12); color: var(--indigo); }
+
+  .readout-note {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--ink-dim);
+    margin-top: 6px;
+    line-height: 1.3;
+  }
+
+  /* ---- LEGEND / FOOTNOTE ---- */
+  .legend {
+    margin-top: 36px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+
+  /* ---- LITERATURE SECTION ---- */
+  .literature {
+    margin-top: 64px;
+    width: 100%;
+    max-width: 720px;
+    border-top: 1px solid var(--paper-line);
+    padding-top: 44px;
+  }
+
+  .lit-block { margin-bottom: 40px; }
+  .lit-block:last-child { margin-bottom: 0; }
+
+  .literature h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .literature p {
+    font-size: 15px;
+    color: var(--ink-dim);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .literature p:last-child { margin-bottom: 0; }
+
+  .literature strong { color: var(--ink); font-weight: 500; }
+  .literature em { font-style: italic; }
+  .literature a { color: var(--rust); text-decoration: none; border-bottom: 1px solid var(--rust-soft); }
+  .literature code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(51,68,85,0.07);
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+
+  .formula-box {
+    background: var(--panel);
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 16px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+
+  .formula sub { font-size: 11px; }
+
+  /* ---- EXAMPLE REFERENCE CARDS ---- */
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .example-card {
+    display: flex;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+    padding: 14px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .example-card:hover { border-color: var(--rust-soft); transform: translateY(-1px); }
+
+  .example-thumb {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: rgba(51,68,85,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .example-thumb svg { width: 32px; height: 32px; }
+
+  .example-cap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .example-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--rust);
+  }
+
+  .example-title {
+    font-family: 'Fraunces', serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+
+  .example-desc {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+
+  .example-footnote {
+    font-family: 'Caveat', cursive;
+    font-size: 14px;
+    color: var(--ink-dim);
+    margin-top: 14px;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 640px) {
+    .example-grid { grid-template-columns: 1fr; }
+  }
+
+  footer {
+    margin-top: 40px;
+    font-family: 'Caveat', cursive;
+    font-size: 17px;
+    color: var(--ink-dim);
+    text-align: center;
+    max-width: 480px;
+    line-height: 1.35;
+  }
+
+  footer a { color: var(--rust); text-decoration: none; border-bottom: 1px solid var(--rust-soft); }
+
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; max-width: 560px; }
+    .stage-canvas-wrap { height: 380px; }
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">&larr; portfolio</a>
+
+<header>
+  <div class="eyebrow">hyperbolic crochet, simulated</div>
+  <h1>What your stitch count<br>does to <em>space itself</em>.</h1>
+  <p>Pick a starting shape and an increase rate. Increase every 6th stitch and the surface stays flat. Go below 6 and it has to ruffle outward to fit the extra material &mdash; the same mechanism Daina Taimiņa used to crochet the hyperbolic plane.</p>
+</header>
+
+<div class="layout">
+
+  <div class="panel">
+    <div class="panel-label">starting shape</div>
+    <div class="shape-options">
+      <button class="shape-btn active" data-shape="circle">
+        <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"></circle></svg>
+        circle
+      </button>
+      <button class="shape-btn" data-shape="line">
+        <svg viewBox="0 0 18 18"><line x1="2.5" y1="9" x2="15.5" y2="9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></line></svg>
+        straight line
+      </button>
+    </div>
+
+    <div class="n-readout">
+      <div class="panel-label">starting stitches</div>
+      <div class="n-value"><span id="start-count-current">8</span> sts</div>
+    </div>
+
+    <div class="n-readout">
+      <div class="panel-label">increase every</div>
+      <div class="n-value"><span id="n-display">4</span>th st</div>
+      <div class="n-sub" id="n-sub-note">more increases than flat</div>
+    </div>
+  </div>
+
+  <div class="stage-box">
+    <div class="stage-canvas-wrap">
+      <canvas id="stage-canvas"></canvas>
+      <div class="stage-hint">drag to rotate &middot; scroll to zoom</div>
+    </div>
+    <div class="slider-bar">
+      <span class="num-label">start with</span>
+      <input type="range" id="start-count-slider" min="5" max="20" value="8" step="1">
+      <span class="n-current" id="start-count-display">8</span>
+    </div>
+    <div class="slider-bar">
+      <span class="num-label">increase rate</span>
+      <input type="range" id="n-slider" min="1" max="10" value="4" step="1">
+      <span class="n-current" id="n-current">4</span>
+    </div>
+    <div class="slider-bar">
+      <span class="num-label">rows / rounds</span>
+      <input type="range" id="rounds-slider" min="3" max="16" value="9" step="1">
+      <span class="n-current" id="rounds-current">9</span>
+    </div>
+    <div class="slider-bar toggle-bar">
+      <label class="toggle-control" for="surface-toggle">
+        <input type="checkbox" id="surface-toggle" checked>
+        <span class="toggle-box"><span class="toggle-check"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4.2L3.6 6.8L9 1.2" stroke="#FFFDF8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+        <span class="toggle-text">shaded surface</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="readout-card">
+      <div class="readout-label">surface type</div>
+      <div id="surface-tag-wrap"></div>
+    </div>
+    <div class="readout-card">
+      <div class="readout-label">rounds shown</div>
+      <div class="readout-value small" id="rounds-val">9</div>
+    </div>
+    <div class="readout-card">
+      <div class="readout-label">stitches, final round</div>
+      <div class="readout-value small" id="stitch-count-val">&mdash;</div>
+    </div>
+    <div class="readout-card">
+      <div class="readout-label">curvature excess</div>
+      <div class="readout-value small" id="curvature-val">&mdash;</div>
+      <div class="readout-note" id="curvature-note">vs. the flat 1-in-6 rule</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <span style="display:inline-block; width:14px; height:3px; background:var(--rust); border-radius:2px;"></span>
+    odd rounds
+  </div>
+  <div class="legend-item">
+    <span style="display:inline-block; width:14px; height:3px; background:var(--indigo); border-radius:2px;"></span>
+    even rounds
+  </div>
+  <div class="legend-item">
+    <svg viewBox="0 0 22 22" style="width:20px;height:20px;"><circle cx="11" cy="11" r="3.6" fill="none" stroke="var(--ink)" stroke-width="1" opacity="0.7"></circle></svg>
+    increase point
+  </div>
+</div>
+
+<section class="literature">
+
+  <div class="lit-block">
+    <h2>What this is</h2>
+    <p>For over a century after hyperbolic geometry was discovered in the 1820s and 1830s, mathematicians had no physical model of it &mdash; paper and tape versions existed but were fragile and tore easily. In 1997, Cornell mathematician <strong>Daina Taimiņa</strong> realized that the same exponential growth could be made durable and tactile with a crochet hook: increase the stitch count in every round by a constant amount, and the fabric is forced to ruffle outward to make room for itself. Her book, <a href="https://www.google.com/search?q=Crocheting+Adventures+with+Hyperbolic+Planes" target="_blank" rel="noopener"><em>Crocheting Adventures with Hyperbolic Planes</em></a>, turned that into a teaching tool now used in geometry classrooms worldwide.</p>
+    <p>This page is a small simulation of that idea: instead of crocheting it by hand, it computes where every stitch should sit in 3D space, given only a starting shape and how often you increase. The stitch lines are always visible; toggle "shaded surface" to fill in the fabric between them so it reads as a solid object rather than a wireframe.</p>
+  </div>
+
+  <div class="lit-block">
+    <h2>How the increase rule works</h2>
+    <p>Pick "circle," set how many stitches to start with, and pick an increase rate of <em>N</em>. Every round after the first adds one extra stitch for every <em>N</em> stitches of the round before it &mdash; the same logic as a real pattern instruction like <em>"2 sc in next st, 1 sc in next, repeat around."</em> The starting count and the increase rate are independent: a ring of 5 stitches increasing every 4th and a ring of 7 increasing every 4th follow the same rule but grow at different paces, since the increase count each round depends on how many stitches are already there. The rows slider controls how many rounds to build out, so you can watch a slow ruffle develop over many rounds or jump straight to a dramatic one.</p>
+    <p>The number <strong>6</strong> is the dividing line. A flat crochet circle follows the textbook rule of one increase per 6 stitches (the familiar "+6 per round"). Set the slider to 6 and the model has just enough new material each round to stay flat. Below 6, you're adding increases faster than flat needs &mdash; the surface has nowhere to put the extra fabric except up and down, which is exactly the ruffling Taimiņa used to model the hyperbolic plane. Above 6, the round comes up short of what flat would need, so it pulls inward instead, the same way decreases close up the top of a sphere.</p>
+  </div>
+
+  <div class="lit-block">
+    <h2>The math behind the curvature</h2>
+    <p>For each round <em>r</em>, the model compares the actual increase density to the flat reference ratio of 1-in-6:</p>
+    <div class="formula-box">
+      <div class="formula">x<sub>r</sub> = (increases<sub>r</sub> / stitches<sub>r&minus;1</sub>) &divide; (1/6) &minus; 1</div>
+    </div>
+    <p>When <code>x<sub>r</sub></code> is positive, round <em>r</em> has more increases than the flat rule allows, and the excess accumulates round over round into the ruffle amplitude you see on the model. When it's negative, the round is short of what flat needs, and the same accumulation pulls the surface into a dome instead. This is a discrete approximation of <strong>Gaussian curvature</strong> &mdash; in the continuous version of this idea, a surface's curvature at a point is exactly what governs whether geodesics on it spread apart (hyperbolic, negative curvature), stay parallel (flat, zero curvature), or converge (spherical, positive curvature). The ripple pattern itself is drawn with as many peaks as there are real increase points in that round, so the visual frequency isn't decorative &mdash; it's tied to where the stitches actually split. Those increase points are spaced evenly around each round rather than clustered at one spot, the same way a real pattern spreads its increases out so the piece doesn't pull lopsided.</p>
+  </div>
+
+  <div class="lit-block">
+    <h2>Real examples</h2>
+    <p>A few real, documented crochet pieces that use this exact mechanism, for comparison against the model above:</p>
+
+    <div class="example-grid">
+      <a class="example-card" href="https://www.cabinetmagazine.org/issues/16/wertheim_henderson_taimina.php" target="_blank" rel="noopener">
+        <div class="example-thumb">
+          <svg viewBox="0 0 60 60"><path d="M30 6 C42 6 50 16 48 28 C46 40 36 36 34 46 C32 54 22 52 20 44 C18 36 26 34 24 24 C22 14 18 10 30 6 Z" fill="none" stroke="var(--rust)" stroke-width="1.4"></path></svg>
+        </div>
+        <div class="example-cap">
+          <span class="example-tag">circle &middot; ratio 2:3</span>
+          <span class="example-title">Taimiņa's first hyperbolic plane</span>
+          <span class="example-desc">crocheted in 1997 with an increase every 2 stitches &mdash; grew so fast it ruffled almost immediately</span>
+        </div>
+      </a>
+
+      <a class="example-card" href="https://www.ams.org/publicoutreach/math-imagery/taimina" target="_blank" rel="noopener">
+        <div class="example-thumb">
+          <svg viewBox="0 0 60 60"><path d="M30 8 C46 8 50 22 44 32 C38 42 46 48 36 52 C26 56 16 48 18 38 C20 28 12 24 18 16 C22 10 24 8 30 8 Z" fill="none" stroke="var(--indigo)" stroke-width="1.4"></path></svg>
+        </div>
+        <div class="example-cap">
+          <span class="example-tag">circle &middot; ratio 12:13</span>
+          <span class="example-title">Taimiņa's classroom models</span>
+          <span class="example-desc">her recommended teaching ratio &mdash; one increase per 12 stitches, ruffling slowly enough to study round by round</span>
+        </div>
+      </a>
+
+      <a class="example-card" href="https://chalkdustmagazine.com/blog/wonders-mathematical-crochet/" target="_blank" rel="noopener">
+        <div class="example-thumb">
+          <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="var(--ink-dim)" stroke-width="1.4"></circle></svg>
+        </div>
+        <div class="example-cap">
+          <span class="example-tag">circle &middot; +6 per round</span>
+          <span class="example-title">the flat reference circle</span>
+          <span class="example-desc">the standard textbook flat-circle rule this model uses as its zero-curvature baseline</span>
+        </div>
+      </a>
+
+      <a class="example-card" href="https://crochetcoralreef.org/artscience/hyperbolicspace/" target="_blank" rel="noopener">
+        <div class="example-thumb">
+          <svg viewBox="0 0 60 60"><path d="M10 40 C14 24 22 14 30 16 C38 18 36 30 44 28 C50 26 52 16 50 10" fill="none" stroke="var(--rust)" stroke-width="1.4"></path></svg>
+        </div>
+        <div class="example-cap">
+          <span class="example-tag">freeform &middot; mixed ratios</span>
+          <span class="example-title">the Crochet Coral Reef project</span>
+          <span class="example-desc">thousands of contributors using varied increase rates to mimic coral, kelp, and other naturally hyperbolic sea life</span>
+        </div>
+      </a>
+    </div>
+    <p class="example-footnote">images aren't reproduced here for copyright reasons &mdash; each card links to the original source.</p>
+  </div>
+
+</section>
+
+<footer>
+  this is the same mechanism behind <a href="https://en.wikipedia.org/wiki/Daina_Taimi%C5%86a" target="_blank" rel="noopener">Daina Taimiņa's</a> crocheted hyperbolic planes &mdash; constant excess stitches, compounding round over round, forced into the third dimension.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function() {
+
+  // ============================================================
+  // MATH: stitch schedule + curvature-driven 3D profile.
+  // See reasoning: vertex degree / increase density vs the flat
+  // 1-in-6 rule gives a clean, monotonic signal for how much the
+  // surface should ruffle (hyperbolic) or dome (spherical).
+  // ============================================================
+  const FLAT_RATIO = 1 / 6;
+  const DEFAULT_ROUNDS = 9; // overridden by the rows slider; kept as fallback
+  const STITCH_LEN = 1.0;
+
+  function userRuleCounts(N, startCount, rounds) {
+    const counts = [startCount];
+    for (let r = 1; r < rounds; r++) {
+      const prev = counts[r - 1];
+      const inc = Math.floor(prev / N);
+      counts.push(prev + inc);
+    }
+    return counts;
+  }
+
+  function evenIncreaseSet(prevCount, nInc) {
+    // Distributes nInc increases evenly around a closed loop of prevCount
+    // stitches. Uses a half-step offset so the first increase isn't forced
+    // to land on index 0 every round -- anchoring to a fixed index created
+    // a visible seam (a long uninterrupted run of plain stitches) running
+    // straight from center to edge across every round.
+    const set = new Set();
+    for (let k = 0; k < nInc; k++) {
+      const pos = Math.round((k + 0.5) * prevCount / nInc) % prevCount;
+      set.add(pos);
+    }
+    return set;
+  }
+
+  function buildLayers(N, startCount, rounds) {
+    const counts = userRuleCounts(N, startCount, rounds);
+    const layers = [];
+    let nextId = 0;
+    let prevRound = null;
+
+    for (let r = 0; r < counts.length; r++) {
+      const count = counts[r];
+      const roundNodes = [];
+      if (r === 0) {
+        for (let i = 0; i < count; i++) {
+          roundNodes.push({ id: nextId++, round: r, parents: [], isIncreaseBase: false });
+        }
+      } else {
+        const prevCount = prevRound.length;
+        const nInc = count - prevCount;
+        const incSet = evenIncreaseSet(prevCount, nInc);
+        for (let b = 0; b < prevCount; b++) {
+          const parent = prevRound[b];
+          const isInc = incSet.has(b);
+          if (isInc) parent.isIncreaseBase = true;
+          const nChildren = isInc ? 2 : 1;
+          for (let k = 0; k < nChildren; k++) {
+            roundNodes.push({ id: nextId++, round: r, parents: [parent.id], isIncreaseBase: false });
+          }
+        }
+      }
+      layers.push(roundNodes);
+      prevRound = roundNodes;
+    }
+    return { layers, counts };
+  }
+
+  function computeProfile(counts) {
+    // returns per-round: radius, ruffle amplitude (signed), n_inc, x_r
+    const rho = [0];
+    const amp = [0];
+    const nIncArr = [0];
+    const xArr = [0];
+    let cumulativeX = 0;
+
+    for (let r = 1; r < counts.length; r++) {
+      const prevCount = counts[r - 1];
+      const nInc = counts[r] - prevCount;
+      const eR = nInc / prevCount;
+      const xR = (eR / FLAT_RATIO) - 1;
+      cumulativeX += xR;
+      rho.push(rho[r - 1] + STITCH_LEN);
+      amp.push(cumulativeX * 0.16 * STITCH_LEN * Math.sqrt(r));
+      nIncArr.push(nInc);
+      xArr.push(xR);
+    }
+    return { rho, amp, nIncArr, xArr, cumulativeX };
+  }
+
+  // ============================================================
+  // 3D POSITIONING
+  // ============================================================
+  function polarPositions(layers, counts, profile, startMode) {
+    const positions = {};
+    const colors = {};
+
+    for (let r = 0; r < layers.length; r++) {
+      const roundNodes = layers[r];
+      const count = roundNodes.length;
+      const radius = profile.rho[r];
+      const amplitude = profile.amp[r];
+      const lobes = Math.max(profile.nIncArr[r], 1);
+      const colorClass = (r % 2 === 0) ? 'rust' : 'indigo';
+
+      for (let i = 0; i < count; i++) {
+        let x, y, z;
+        if (startMode === 'circle') {
+          const angle = (i / count) * Math.PI * 2;
+          // ripple: amplitude * sin(lobes * angle) -- frequency matches actual increase count
+          const ripple = amplitude * Math.sin(lobes * angle);
+          x = radius * Math.cos(angle);
+          y = radius * Math.sin(angle);
+          z = ripple;
+        } else {
+          // line mode: lay rounds front-to-back (y = row depth), x = position along the row
+          const half = (count - 1) / 2;
+          const xPos = (i - half) * STITCH_LEN;
+          const ripple = amplitude * Math.sin(lobes * (i / count) * Math.PI * 2);
+          x = xPos;
+          y = -radius;
+          z = ripple;
+        }
+        positions[roundNodes[i].id] = { x, y, z, round: r, isIncrease: false };
+        colors[roundNodes[i].id] = colorClass;
+      }
+    }
+
+    // mark increase-base flags from layers onto positions for the dot markers
+    for (let r = 0; r < layers.length; r++) {
+      for (const node of layers[r]) {
+        if (node.isIncreaseBase) positions[node.id].isIncrease = true;
+      }
+    }
+
+    return { positions, colors };
+  }
+
+  // ============================================================
+  // THREE.JS SCENE
+  // ============================================================
+  const canvas = document.getElementById('stage-canvas');
+  const threeAvailable = typeof THREE !== 'undefined';
+
+  let scene, camera, renderer, stitchGroup;
+
+  if (threeAvailable) {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+    camera.position.set(0, -10, 13);
+    camera.lookAt(0, 0, 0);
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  } else {
+    console.warn('Three.js failed to load; the 3D stage will stay blank, but controls and numbers still work.');
+  }
+
+  function sizeRenderer() {
+    if (!threeAvailable) return;
+    const wrap = canvas.parentElement;
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  sizeRenderer();
+
+  const ink = 0x2A2520;
+  const rust = 0x334455;
+  const indigo = 0x8C6F8A;
+
+  let showSurface = true;
+  let surfaceMesh = null;
+
+  if (threeAvailable) {
+    // lighting for the shaded surface fill (line segments use BasicMaterial so
+    // they're unaffected; only the optional surface mesh responds to these)
+    const ambientLight = new THREE.AmbientLight(0xfff6ea, 0.85);
+    scene.add(ambientLight);
+    const keyLight = new THREE.DirectionalLight(0xfff6ea, 0.65);
+    keyLight.position.set(6, -8, 12);
+    scene.add(keyLight);
+    const fillLight = new THREE.DirectionalLight(0xfff6ea, 0.3);
+    fillLight.position.set(-8, 6, -4);
+    scene.add(fillLight);
+
+    stitchGroup = new THREE.Group();
+    scene.add(stitchGroup);
+  }
+
+  function clearGroup(group) {
+    if (!group) return;
+    while (group.children.length > 0) {
+      const child = group.children[0];
+      group.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    }
+  }
+
+  function buildScene(startMode, N, startCount, rounds) {
+    const { layers, counts } = buildLayers(N, startCount, rounds);
+    const profile = computeProfile(counts);
+
+    if (!threeAvailable) {
+      // Three.js failed to load (e.g. CDN blocked) -- skip 3D rendering but
+      // still compute the math and update the side-panel readouts, so the
+      // sliders and numbers stay functional even without the visual.
+      updateReadouts(N, startCount, rounds, counts, profile);
+      return;
+    }
+
+    clearGroup(stitchGroup);
+
+    const { positions, colors } = polarPositions(layers, counts, profile, startMode);
+
+    // draw radial (stitch) edges as line segments, colored by round
+    const rustPoints = [];
+    const indigoPoints = [];
+
+    function pushEdge(arr, p1, p2) {
+      arr.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    }
+
+    for (let r = 0; r < layers.length; r++) {
+      for (const node of layers[r]) {
+        const p = positions[node.id];
+        const colorClass = colors[node.id];
+        const arr = colorClass === 'rust' ? rustPoints : indigoPoints;
+        if (node.parents.length > 0) {
+          const parentPos = positions[node.parents[0]];
+          pushEdge(arr, parentPos, p);
+        } else if (r === 0) {
+          // round 0: connect to a virtual center point at the origin (the ring/start)
+          pushEdge(arr, { x: 0, y: startMode === 'circle' ? 0 : (-profile.rho[0] + STITCH_LEN), z: 0 }, p);
+        }
+      }
+      // ring edges (same-round neighbors) -- only for circle mode (line mode has open ends)
+      const count = layers[r].length;
+      for (let i = 0; i < count; i++) {
+        if (startMode === 'circle') {
+          const a = positions[layers[r][i].id];
+          const b = positions[layers[r][(i + 1) % count].id];
+          const arr = colors[layers[r][i].id] === 'rust' ? rustPoints : indigoPoints;
+          pushEdge(arr, a, b);
+        } else {
+          if (i < count - 1) {
+            const a = positions[layers[r][i].id];
+            const b = positions[layers[r][i + 1].id];
+            const arr = colors[layers[r][i].id] === 'rust' ? rustPoints : indigoPoints;
+            pushEdge(arr, a, b);
+          }
+        }
+      }
+    }
+
+    function makeLineSegments(pointsArr, color) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pointsArr, 3));
+      const mat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.85 });
+      return new THREE.LineSegments(geo, mat);
+    }
+
+    stitchGroup.add(makeLineSegments(rustPoints, rust));
+    stitchGroup.add(makeLineSegments(indigoPoints, indigo));
+
+    // increase-point markers: small rings at each increase base
+    const markerGroup = new THREE.Group();
+    const ringGeo = new THREE.RingGeometry(0.05, 0.07, 10);
+    const ringMat = new THREE.MeshBasicMaterial({ color: ink, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+    for (let r = 0; r < layers.length; r++) {
+      for (const node of layers[r]) {
+        if (node.isIncreaseBase) {
+          const p = positions[node.id];
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.set(p.x, p.y, p.z);
+          markerGroup.add(ring);
+        }
+      }
+    }
+    stitchGroup.add(markerGroup);
+
+    // ---- shaded surface fill: triangulate between each round and the one
+    // before it, using the exact same parent/neighbor links as the stitch
+    // lines, so the fill follows the real topology rather than an
+    // independent approximation. ----
+    const surfaceVerts = [];
+    function pushTri(p1, p2, p3) {
+      surfaceVerts.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+    }
+
+    for (let r = 1; r < layers.length; r++) {
+      const roundNodes = layers[r];
+      const count = roundNodes.length;
+      for (let i = 0; i < count; i++) {
+        const node = roundNodes[i];
+        const nextNode = roundNodes[(i + 1) % count];
+        if (startMode === 'line' && i === count - 1) continue; // open end, no wraparound tri
+
+        const p = positions[node.id];
+        const pNext = positions[nextNode.id];
+        const parentId = node.parents[0];
+        const nextParentId = nextNode.parents[0];
+
+        if (parentId === undefined || nextParentId === undefined) continue;
+        const parentPos = positions[parentId];
+        const nextParentPos = positions[nextParentId];
+
+        if (parentId === nextParentId) {
+          // shared base (this is the increase fan): one triangle
+          pushTri(parentPos, p, pNext);
+        } else {
+          // normal quad between two distinct parents: split into two triangles
+          pushTri(parentPos, p, nextParentPos);
+          pushTri(p, pNext, nextParentPos);
+        }
+      }
+    }
+
+    const surfaceGeo = new THREE.BufferGeometry();
+    surfaceGeo.setAttribute('position', new THREE.Float32BufferAttribute(surfaceVerts, 3));
+    surfaceGeo.computeVertexNormals();
+    const surfaceMat = new THREE.MeshStandardMaterial({
+      color: 0xEFE6D8,
+      roughness: 0.85,
+      metalness: 0.02,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.92,
+      polygonOffset: true,
+      polygonOffsetFactor: 2,
+      polygonOffsetUnits: 1
+    });
+    surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat);
+    surfaceMesh.visible = showSurface;
+    stitchGroup.add(surfaceMesh);
+
+    // gently auto-frame the camera based on overall size
+    const outer = profile.rho[profile.rho.length - 1] || 4;
+    const dist = Math.max(10, outer * 1.7);
+    camDistance = dist;
+
+    // update side readouts
+    updateReadouts(N, startCount, rounds, counts, profile);
+  }
+
+  // ---- camera orbit controls (manual, no OrbitControls in r128 build) ----
+  let camDistance = 13;
+  let camTheta = -0.35;   // azimuth
+  let camPhi = 1.0;       // polar angle from top
+  let isDragging = false;
+  let lastX = 0, lastY = 0;
+
+  function updateCameraFromOrbit() {
+    const x = camDistance * Math.sin(camPhi) * Math.cos(camTheta);
+    const y = camDistance * Math.sin(camPhi) * Math.sin(camTheta);
+    const z = camDistance * Math.cos(camPhi);
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+  }
+
+  canvas.addEventListener('mousedown', (e) => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    camTheta -= dx * 0.006;
+    camPhi = Math.min(Math.max(camPhi - dy * 0.006, 0.15), Math.PI - 0.15);
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    camDistance = Math.min(Math.max(camDistance + e.deltaY * 0.01, 4), 40);
+  }, { passive: false });
+
+  // touch support
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+  });
+  window.addEventListener('touchend', () => { isDragging = false; });
+  window.addEventListener('touchmove', (e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - lastX, dy = e.touches[0].clientY - lastY;
+    camTheta -= dx * 0.006;
+    camPhi = Math.min(Math.max(camPhi - dy * 0.006, 0.15), Math.PI - 0.15);
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }, { passive: true });
+
+  function animate() {
+    if (!threeAvailable) return;
+    updateCameraFromOrbit();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  if (threeAvailable) animate();
+
+  window.addEventListener('resize', sizeRenderer);
+
+  // ============================================================
+  // READOUTS + CONTROLS
+  // ============================================================
+  const nDisplay = document.getElementById('n-display');
+  const nSubNote = document.getElementById('n-sub-note');
+  const nSlider = document.getElementById('n-slider');
+  const nCurrent = document.getElementById('n-current');
+  const startCountSlider = document.getElementById('start-count-slider');
+  const startCountCurrent = document.getElementById('start-count-current');
+  const startCountDisplay = document.getElementById('start-count-display');
+  const roundsSlider = document.getElementById('rounds-slider');
+  const roundsCurrent = document.getElementById('rounds-current');
+  const surfaceTagWrap = document.getElementById('surface-tag-wrap');
+  const roundsVal = document.getElementById('rounds-val');
+  const stitchCountVal = document.getElementById('stitch-count-val');
+  const curvatureVal = document.getElementById('curvature-val');
+  const curvatureNote = document.getElementById('curvature-note');
+  const shapeBtns = document.querySelectorAll('.shape-btn');
+
+  let currentShape = 'circle';
+  let currentN = 4;
+  let currentStartCount = 8;
+  let currentRounds = DEFAULT_ROUNDS;
+
+  function updateReadouts(N, startCount, rounds, counts, profile) {
+    nDisplay.textContent = N;
+    nCurrent.textContent = N;
+    startCountCurrent.textContent = startCount;
+    startCountDisplay.textContent = startCount;
+    roundsVal.textContent = rounds;
+    roundsCurrent.textContent = rounds;
+    stitchCountVal.textContent = counts[counts.length - 1] + ' stitches';
+
+    const finalX = profile.xArr[profile.xArr.length - 1];
+    const cumulative = profile.cumulativeX;
+
+    let tagClass, tagLabel, note, subNote;
+    if (N === 6) {
+      tagClass = 'flat'; tagLabel = 'flat (Euclidean)';
+      note = 'right at the 1-in-6 line';
+      subNote = 'matches the flat-circle rule';
+    } else if (N < 6) {
+      tagClass = 'hyperbolic'; tagLabel = 'hyperbolic (ruffles)';
+      note = 'more increases than flat needs &mdash; surface folds outward to fit the extra stitches';
+      subNote = 'more increases than flat';
+    } else {
+      tagClass = 'spherical'; tagLabel = 'spherical (domes)';
+      note = 'fewer increases than flat needs &mdash; surface pulls inward like a cap';
+      subNote = 'fewer increases than flat';
+    }
+
+    surfaceTagWrap.innerHTML = `<span class="surface-tag ${tagClass}">${tagLabel}</span>`;
+    nSubNote.innerHTML = subNote;
+    curvatureVal.textContent = (cumulative >= 0 ? '+' : '') + cumulative.toFixed(2);
+    curvatureNote.innerHTML = note;
+  }
+
+  function rebuild() {
+    buildScene(currentShape, currentN, currentStartCount, currentRounds);
+  }
+
+  nSlider.addEventListener('input', function() {
+    currentN = parseInt(this.value, 10);
+    rebuild();
+  });
+
+  startCountSlider.addEventListener('input', function() {
+    currentStartCount = parseInt(this.value, 10);
+    rebuild();
+  });
+
+  roundsSlider.addEventListener('input', function() {
+    currentRounds = parseInt(this.value, 10);
+    rebuild();
+  });
+
+  shapeBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      shapeBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentShape = this.dataset.shape;
+      rebuild();
+    });
+  });
+
+  const surfaceToggle = document.getElementById('surface-toggle');
+  surfaceToggle.addEventListener('change', function() {
+    showSurface = this.checked;
+    if (surfaceMesh) surfaceMesh.visible = showSurface;
+  });
+
+  rebuild();
+})();
+</script>
+
+</body>
+</html>

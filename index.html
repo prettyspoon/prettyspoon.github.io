@@ -1,29 +1,904 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <title>pixelPlayground</title>
-  <meta name="author" content="Hetvi Pethad">
-  <link rel="stylesheet" href="style1.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hetvi Pethad — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #2B1F1C;
+    --bg-2: #352621;
+    --terracotta: #D4724A;
+    --terracotta-soft: #E8916B;
+    --sage: #8A9A7E;
+    --cream: #F2E8E0;
+    --cream-dim: #C9BBB0;
+    --line: rgba(242, 232, 224, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ---- NAV ---- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(43, 31, 28, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--terracotta-soft);
+    letter-spacing: 0.02em;
+  }
+
+  .logo span { color: var(--cream-dim); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cream-dim);
+  }
+
+  .nav-links a { position: relative; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--terracotta-soft); }
+  .nav-links a::before { content: "// "; color: var(--sage); opacity: 0.6; }
+
+  /* ---- HERO ---- */
+  .hero {
+    padding: 120px 0 100px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items: center;
+    position: relative;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    top: -60px;
+    right: -80px;
+    width: 560px;
+    height: 560px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.9;
+  }
+
+  #bg-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--sage);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 0 0 rgba(138, 154, 126, 0.6);
+    animation: pulse 2.4s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(138, 154, 126, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(138, 154, 126, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(138, 154, 126, 0); }
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--terracotta-soft);
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    color: var(--cream-dim);
+    max-width: 420px;
+    margin-bottom: 32px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+  }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: #2B1F1C;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: var(--terracotta-soft); }
+
+  .btn-ghost { color: var(--cream-dim); }
+  .btn-ghost:hover { border-color: var(--sage); color: var(--sage); }
+
+  /* ---- TERMINAL CARD (signature element) ---- */
+  .terminal {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero > div:first-child { position: relative; z-index: 2; }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .terminal-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .terminal-dot:nth-child(1) { background: #D4724A; }
+  .terminal-dot:nth-child(2) { background: #8A9A7E; }
+  .terminal-dot:nth-child(3) { background: #C9BBB0; opacity: 0.4; }
+
+  .terminal-body {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    padding: 22px 20px;
+  }
+
+  .t-key { color: var(--sage); }
+  .t-str { color: var(--terracotta-soft); }
+  .t-com { color: var(--cream-dim); opacity: 0.55; }
+  .t-cur {
+    display: inline-block;
+    width: 7px;
+    height: 15px;
+    background: var(--terracotta-soft);
+    vertical-align: -2px;
+    animation: blink 1.1s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---- SECTION SHARED ---- */
+  section { padding: 90px 0; border-top: 1px solid var(--line); }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--terracotta-soft);
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+  }
+
+  /* ---- PROJECTS ---- */
+  .projects { display: flex; flex-direction: column; gap: 1px; }
+
+  .project {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 26px 20px;
+    border-radius: 8px;
+    transition: background 0.25s;
+  }
+
+  .project:hover { background: var(--bg-2); }
+
+  .project-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cream-dim);
+  }
+
+  .project-name {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .project-desc {
+    font-size: 14.5px;
+    color: var(--cream-dim);
+  }
+
+  .project-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    color: var(--cream-dim);
+    white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .project-group:hover .tag { border-color: var(--sage); color: var(--sage); }
+
+  .arrow {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--terracotta-soft);
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    transform: translateX(-4px);
+  }
+
+  .project-group:hover .arrow { opacity: 1; transform: translateX(0); }
+
+  .project-group {
+    border-radius: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .project-group:hover {
+    transform: translateY(-3px) scale(1.012);
+    box-shadow: 0 16px 34px -18px rgba(0,0,0,0.45);
+  }
+
+  .project-detail {
+    padding: 4px 20px 28px;
+  }
+
+  .project-detail ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .project-detail li {
+    font-size: 14px;
+    color: var(--cream-dim);
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .project-detail li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    color: var(--terracotta-soft);
+  }
+
+  .detail-link {
+    display: inline-block;
+    margin-top: 14px;
+    margin-right: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--terracotta-soft);
+    border-bottom: 1px solid transparent;
+  }
+
+  .detail-link:hover { border-color: var(--terracotta-soft); }
+
+  /* ---- ABOUT / SKILLS ---- */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 56px;
+  }
+
+  .about-text p { color: var(--cream-dim); font-size: 15.5px; margin-bottom: 16px; max-width: 460px; }
+  .about-text strong { color: var(--cream); font-weight: 500; }
+
+  .skill-group { margin-bottom: 22px; }
+
+  .skill-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--sage);
+    margin-bottom: 10px;
+    text-transform: lowercase;
+  }
+
+  .skill-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    background: var(--bg-2);
+    border-radius: 6px;
+    color: var(--cream-dim);
+  }
+
+  /* ---- FOOTER / CONTACT ---- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 80px 0 50px;
+  }
+
+  .footer-headline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 34px;
+    max-width: 520px;
+    margin-bottom: 36px;
+  }
+
+  .footer-headline .accent { color: var(--terracotta-soft); font-style: normal; }
+
+  .footer-links {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 60px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+  }
+
+  .footer-links a { color: var(--cream-dim); border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .footer-links a:hover { color: var(--terracotta-soft); border-color: var(--terracotta-soft); }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cream-dim);
+    opacity: 0.6;
+  }
+
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; padding-top: 90px; }
+    h1 { font-size: 38px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .project { grid-template-columns: 1fr; gap: 10px; }
+    .nav-links { display: none; }
+    .footer-bottom { flex-direction: column; gap: 8px; }
+  }
+</style>
 </head>
-
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js"></script>
-    <script src="background.js"></script>
 
-    <section id="background">
-        <div id="my-background"></div> 
-    </section>
+<canvas id="bg-particles"></canvas>
 
-    <div class="front">
-        <div class="title">pixelPlayground</div>
-        <div class="links">
-            <div><a href="about.html">about</a></div>
-            <div><a href="howToUse.html">howToUse</a></div>
-            <div><a href="inspiration.html">inspiration</a></div>
-            <div><a href="canvas.html">canvas</a></div>
-        </div>
+<nav>
+  <div class="wrap">
+    <div class="logo">hetvi<span>.dev</span></div>
+    <div class="nav-links">
+      <a href="#about">about</a>
+      <a href="#experience">experience</a>
+      <a href="#work">projects</a>
+      <a href="#contact">contact</a>
     </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <section class="hero" style="border-top:none;">
+    <canvas id="hero-canvas"></canvas>
+    <div>
+      <div class="eyebrow"><span class="dot"></span>actively job hunting, open to relocation</div>
+      <h1>Hetvi Pethad<br>codes at the edge of <em>math</em>.</h1>
+      <p class="hero-sub">CS + Math grad from UW&ndash;Madison who likes building things where computation and geometry meet &mdash; from AI-driven games to crochet-modeled hyperbolic surfaces.</p>
+      <div class="hero-cta">
+        <a href="#work" class="btn btn-primary">view projects →</a>
+        <a href="#contact" class="btn btn-ghost">say hello</a>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-key">const</span> hetvi = {</div>
+        <div>&nbsp;&nbsp;studying: <span class="t-str">'CS + Math'</span>,</div>
+        <div>&nbsp;&nbsp;school: <span class="t-str">'UW&ndash;Madison'</span>,</div>
+        <div>&nbsp;&nbsp;stack: [<span class="t-str">'java'</span>, <span class="t-str">'python'</span>,</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-str">'react'</span>, <span class="t-str">'sql'</span>],</div>
+        <div>&nbsp;&nbsp;<span class="t-com">// also: digital art,</span></div>
+        <div>&nbsp;&nbsp;<span class="t-com">// hyperbolic crochet</span></div>
+        <div>};<span class="t-cur"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2>about</h2>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I studied CS + Math at <strong>UW&ndash;Madison</strong>, graduated May 2026, with certificates in Mathematics and Digital Art &mdash; which is a roundabout way of saying I like problems that are part logic, part geometry, part craft.</p>
+        <p>My research background is in <strong>visualized hyperbolic geometry</strong>, including a project that modeled how crochet patterns affect curvature on hyperbolic surfaces. I've also built AI-narrative games, scraping pipelines, and ERP backend logic.</p>
+        <p>Outside of code, I've spent years mentoring students for Math Olympiads and teaching geometry workshops &mdash; I like explaining things almost as much as building them.</p>
+      </div>
+
+      <div>
+        <div class="skill-group">
+          <div class="skill-label">languages</div>
+          <div class="skill-pills">
+            <span class="pill">java</span>
+            <span class="pill">python</span>
+            <span class="pill">c / c++</span>
+            <span class="pill">sql</span>
+            <span class="pill">javascript</span>
+            <span class="pill">matlab</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-label">web / frontend</div>
+          <div class="skill-pills">
+            <span class="pill">react</span>
+            <span class="pill">html / css</span>
+            <span class="pill">processing</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-label">tools & other</div>
+          <div class="skill-pills">
+            <span class="pill">git</span>
+            <span class="pill">websockets</span>
+            <span class="pill">cryptography</span>
+            <span class="pill">db design</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-label">education</div>
+          <p style="font-size: 14.5px; color: var(--cream-dim);">B.S. Computer Science with Mathematics<br>Certificates in Mathematics &amp; Digital Art<br>University of Wisconsin&ndash;Madison, May 2026</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2>experience</h2>
+    </div>
+
+    <div class="projects">
+      <div class="project-group">
+      <div class="project" data-target="exp-1">
+        <div class="project-year">2023&ndash;Now</div>
+        <div>
+          <div class="project-name">Lead Building Manager &amp; Accounting Manager</div>
+          <div class="project-desc">Wisconsin Union &middot; UW&ndash;Madison</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">operations</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="exp-1">
+        <ul>
+          <li>Oversee daily operations of a high-traffic campus facility serving 70,000+ visitors weekly, coordinating event readiness, safety compliance, and service quality across every shift.</li>
+          <li>Serve as primary on-site authority during safety and security incidents, partnering with UWPD and campus services on risk assessment and emergency response.</li>
+          <li>Recruited and trained 10+ Building Managers, building troubleshooting documentation and scenario-based exercises to improve consistency across shifts.</li>
+          <li>Manage cash handling, deposit preparation, and end-of-shift reconciliation, maintaining strict accuracy standards.</li>
+        </ul>
+      </div>
+      </div>
+
+      <div class="project-group">
+      <div class="project" data-target="exp-2">
+        <div class="project-year">2024</div>
+        <div>
+          <div class="project-name">Software Engineer Intern</div>
+          <div class="project-desc">StrategicERP Business Automation Solutions &middot; Mumbai, India</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">python</span>
+          <span class="tag">sql</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="exp-2">
+        <ul>
+          <li>Collaborated on a Spring Boot project to manage client ERP records, using Liquibase for database version control and PostgreSQL across dev, QA, and prod environments.</li>
+          <li>Implemented secure password encryption, environment-specific deployment strategies, and modular code versioning via GitFlow.</li>
+          <li>Contributed to automated database migration scripts and enhanced error logging and client-specific auditing through Log4j integration.</li>
+          <li>Developed and executed functional and regression test cases for client deployments, debugging within a large production codebase.</li>
+        </ul>
+      </div>
+      </div>
+
+      <div class="project-group">
+      <div class="project" data-target="exp-3">
+        <div class="project-year">2024</div>
+        <div>
+          <div class="project-name">Software Engineer</div>
+          <div class="project-desc">Wisconsin Messenger &middot; UW&ndash;Madison</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">python</span>
+          <span class="tag">html / css</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="exp-3">
+        <ul>
+          <li>Designed responsive, email-compatible HTML/CSS templates for daily newsletters, ensuring consistent rendering across Gmail, Outlook, and Apple Mail.</li>
+          <li>Built and maintained automated web-scraping pipelines in Python to collect, parse, and normalize news content from multiple sources, reducing manual editorial workload.</li>
+          <li>Collaborated with engineers and editors to streamline editorial-to-technical handoffs, shipping frontend improvements that boosted reader engagement.</li>
+        </ul>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2>projects</h2>
+    </div>
+
+    <div class="projects">
+      <div class="project-group">
+      <div class="project" data-target="proj-1">
+        <div class="project-year">2025</div>
+        <div>
+          <div class="project-name">Written Warriors: Murder at the Manor</div>
+          <div class="project-desc">Text-based murder mystery game with AI-generated narrative and real-time multiplayer.</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">react</span>
+          <span class="tag">websockets</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="proj-1">
+        <ul>
+          <li>Designed and developed a text-based murder mystery game with rule logic, AI-generated narrative, and interactive dialogue systems.</li>
+          <li>Implemented a state-driven backend managing player health, inventory, clues, NPC trust levels, branching decisions, and dynamic win/loss conditions.</li>
+          <li>Built a React frontend with ASCII-inspired visuals and command parsing, integrating WebSockets for real-time multiplayer gameplay.</li>
+          <li>Designed an AI-driven narrative engine to generate context-aware dialogue and adjust story branches dynamically based on player choices.</li>
+        </ul>
+      </div>
+      </div>
+
+      <div class="project-group">
+      <div class="project" data-target="proj-2">
+        <div class="project-year">2024</div>
+        <div>
+          <div class="project-name">Pixel Playground</div>
+          <div class="project-desc">Drag-and-drop wallpaper design platform with automatic seamless tiling.</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">javascript</span>
+          <span class="tag">html / css</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="proj-2">
+        <ul>
+          <li>Developed an interactive wallpaper design platform using HTML, CSS, and JavaScript for seamless, customizable pattern creation.</li>
+          <li>Designed a drag-and-drop interface enabling precise alignment and automatic seamless tiling without manual adjustments.</li>
+          <li>Strengthened full-stack development and UX design skills while managing deployment and cross-browser compatibility testing.</li>
+          <li>Optimized rendering performance for large canvas patterns, ensuring smooth interaction across screen sizes and device types.</li>
+        </ul>
+        <a href="pixelPlayground.html" class="detail-link">live demo →</a>
+      </div>
+      </div>
+
+      <div class="project-group">
+      <div class="project" data-target="proj-3">
+        <div class="project-year">2024</div>
+        <div>
+          <div class="project-name">Hyperbolic Geometry, Visualized via Crochet</div>
+          <div class="project-desc">Computational model linking crochet pattern variation to hyperbolic surface curvature.</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">research</span>
+          <span class="tag">geometry</span>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="project-detail" id="proj-3">
+        <ul>
+          <li>Developed a computational model predicting how crochet pattern variations influence curvature in hyperbolic surface constructions.</li>
+          <li>Analyzed visual and geometric outcomes of crochet techniques, connecting mathematical theory with tangible, handcrafted models.</li>
+          <li>Constructed a hyperbolic Earth projection to examine distortion patterns and visualize alternative geometric world-mapping systems.</li>
+          <li>Presented findings to faculty and peers at the Madison Experimental Mathematics Lab's semester showcase.</li>
+        </ul>
+        <a href="https://mxm.math.wisc.edu" class="detail-link">project page: mxm.math.wisc.edu →</a>
+        <a href="hyperbolic-crochet-3d.html" class="detail-link">try the interactive 3D model →</a>
+      </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-headline">Got something worth building? <span class="accent">Let's talk.</span></div>
+    <div class="footer-links">
+      <a href="tel:+12164844327">(216) 484-4327</a>
+      <a href="https://www.linkedin.com/in/hetvi-pethad-075736205/">linkedin</a>
+      <a href="#">github</a>
+      <a href="#">resume.pdf</a>
+    </div>
+    <div class="footer-bottom">
+      <span>hetvi pethad &middot; madison, wi &middot; actively job hunting, open to relocation</span>
+      <span>2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function() {
+  if (typeof THREE === 'undefined') {
+    console.warn('Three.js failed to load; skipping the animated hero object.');
+    return;
+  }
+  // ---------- shared colors ----------
+  const terracotta = 0xD4724A;
+  const sage = 0x8A9A7E;
+  const cream = 0xF2E8E0;
+
+  // ============================================================
+  // HERO OBJECT — low-poly icosahedron, wireframe + soft fill,
+  // tilts toward the cursor, idles with a slow continuous spin.
+  // ============================================================
+  const heroCanvas = document.getElementById('hero-canvas');
+  const heroScene = new THREE.Scene();
+  const heroCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  heroCamera.position.set(0, 0, 6.2);
+
+  const heroRenderer = new THREE.WebGLRenderer({ canvas: heroCanvas, alpha: true, antialias: true });
+  heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  function sizeHero() {
+    const s = heroCanvas.clientWidth || 560;
+    heroRenderer.setSize(s, s, false);
+    heroCamera.aspect = 1;
+    heroCamera.updateProjectionMatrix();
+  }
+  sizeHero();
+
+  const icoGeo = new THREE.IcosahedronGeometry(2.1, 1);
+
+  const fillMat = new THREE.MeshBasicMaterial({
+    color: terracotta,
+    transparent: true,
+    opacity: 0.07,
+  });
+  const fillMesh = new THREE.Mesh(icoGeo, fillMat);
+  heroScene.add(fillMesh);
+
+  const wireGeo = new THREE.EdgesGeometry(icoGeo);
+  const wireMat = new THREE.LineBasicMaterial({ color: terracotta, transparent: true, opacity: 0.55 });
+  const wireMesh = new THREE.LineSegments(wireGeo, wireMat);
+  heroScene.add(wireMesh);
+
+  // a sparser inner shape in sage for depth
+  const innerGeo = new THREE.IcosahedronGeometry(1.1, 0);
+  const innerWireGeo = new THREE.EdgesGeometry(innerGeo);
+  const innerWireMat = new THREE.LineBasicMaterial({ color: sage, transparent: true, opacity: 0.35 });
+  const innerMesh = new THREE.LineSegments(innerWireGeo, innerWireMat);
+  heroScene.add(innerMesh);
+
+  // small floating points around the shape
+  const pointCount = 40;
+  const pointPositions = new Float32Array(pointCount * 3);
+  for (let i = 0; i < pointCount; i++) {
+    const r = 2.6 + Math.random() * 1.4;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+    pointPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    pointPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    pointPositions[i * 3 + 2] = r * Math.cos(phi);
+  }
+  const pointGeo = new THREE.BufferGeometry();
+  pointGeo.setAttribute('position', new THREE.BufferAttribute(pointPositions, 3));
+  const pointMat = new THREE.PointsMaterial({ color: cream, size: 0.035, transparent: true, opacity: 0.5 });
+  const pointsMesh = new THREE.Points(pointGeo, pointMat);
+  heroScene.add(pointsMesh);
+
+  let targetRotX = 0, targetRotY = 0;
+  let mouseInHero = false;
+
+  function onHeroPointer(clientX, clientY) {
+    const rect = heroCanvas.getBoundingClientRect();
+    const x = (clientX - rect.left) / rect.width;
+    const y = (clientY - rect.top) / rect.height;
+    targetRotY = (x - 0.5) * 1.1;
+    targetRotX = (y - 0.5) * -0.9;
+  }
+
+  window.addEventListener('mousemove', (e) => onHeroPointer(e.clientX, e.clientY));
+  heroCanvas.addEventListener('mouseenter', () => { mouseInHero = true; });
+  heroCanvas.addEventListener('mouseleave', () => { mouseInHero = false; });
+
+  let heroT = 0;
+  function animateHero() {
+    heroT += 0.004;
+
+    fillMesh.rotation.x += (targetRotX - fillMesh.rotation.x) * 0.04;
+    fillMesh.rotation.y += (targetRotY + heroT - fillMesh.rotation.y) * 0.04;
+    wireMesh.rotation.copy(fillMesh.rotation);
+
+    innerMesh.rotation.x -= 0.0022;
+    innerMesh.rotation.y -= 0.0035;
+
+    pointsMesh.rotation.y += 0.0009;
+    pointsMesh.rotation.x += 0.0004;
+
+    heroRenderer.render(heroScene, heroCamera);
+    requestAnimationFrame(animateHero);
+  }
+  animateHero();
+
+  // ============================================================
+  // BACKGROUND PARTICLES — sparse drifting dust across the page,
+  // shifts gently with scroll position rather than a full scene.
+  // ============================================================
+  const bgCanvas = document.getElementById('bg-particles');
+  const bgScene = new THREE.Scene();
+  const bgCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50);
+  bgCamera.position.z = 10;
+
+  const bgRenderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
+  bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  function sizeBg() {
+    bgRenderer.setSize(window.innerWidth, window.innerHeight, false);
+    bgCamera.aspect = window.innerWidth / window.innerHeight;
+    bgCamera.updateProjectionMatrix();
+  }
+  sizeBg();
+
+  const dustCount = 65;
+  const dustPositions = new Float32Array(dustCount * 3);
+  for (let i = 0; i < dustCount; i++) {
+    dustPositions[i * 3] = (Math.random() - 0.5) * 22;
+    dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+    dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 14 - 4;
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+  const dustMat = new THREE.PointsMaterial({ color: terracotta, size: 0.045, transparent: true, opacity: 0.45 });
+  const dustMesh = new THREE.Points(dustGeo, dustMat);
+  bgScene.add(dustMesh);
+
+  // second, sparser layer in sage for a touch of the secondary accent color
+  const sageDustCount = 30;
+  const sageDustPositions = new Float32Array(sageDustCount * 3);
+  for (let i = 0; i < sageDustCount; i++) {
+    sageDustPositions[i * 3] = (Math.random() - 0.5) * 22;
+    sageDustPositions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+    sageDustPositions[i * 3 + 2] = (Math.random() - 0.5) * 14 - 4;
+  }
+  const sageDustGeo = new THREE.BufferGeometry();
+  sageDustGeo.setAttribute('position', new THREE.BufferAttribute(sageDustPositions, 3));
+  const sageDustMat = new THREE.PointsMaterial({ color: sage, size: 0.04, transparent: true, opacity: 0.4 });
+  const sageDustMesh = new THREE.Points(sageDustGeo, sageDustMat);
+  bgScene.add(sageDustMesh);
+
+  let scrollFrac = 0;
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    scrollFrac = max > 0 ? window.scrollY / max : 0;
+  });
+
+  let bgT = 0;
+  function animateBg() {
+    bgT += 0.0015;
+    dustMesh.rotation.y = bgT + scrollFrac * 0.6;
+    dustMesh.position.y = scrollFrac * 3.2;
+    sageDustMesh.rotation.y = -bgT * 0.7 + scrollFrac * 0.4;
+    sageDustMesh.position.y = scrollFrac * 2.4;
+    bgRenderer.render(bgScene, bgCamera);
+    requestAnimationFrame(animateBg);
+  }
+  animateBg();
+
+  window.addEventListener('resize', () => {
+    sizeHero();
+    sizeBg();
+  });
+
+  // respect reduced motion: freeze idle spin, keep cursor response off
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    targetRotX = 0; targetRotY = 0;
+  }
+})();
+
+(function() {
+  // details are always visible now; the .project-group:hover CSS rule
+  // handles the "pop" emphasis, so no JS toggle is needed here.
+})();
+</script>
 </body>
 </html>
